@@ -40,9 +40,11 @@ unsigned int flash_read_word(void* address);
 /// Returns 0 (nil) if successful
 unsigned int flash_write_word(void* address, unsigned int data_word);
 
+#ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 /// Write a double word to provided program memory address.
 /// Returns 0 (nil) if successful
 unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned int word_l);
+#endif
 
 /// Write a row of data to provided program memory address.
 /// Returns 0 (nil) if successful.

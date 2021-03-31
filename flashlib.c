@@ -56,6 +56,27 @@ unsigned int eeprom_write_word(void* ee_address, unsigned int data_word) {
 }
 #endif
 
+unsigned int flash_read_word(void* address) {
+    return *(unsigned int*)address;
+}
+
+unsigned int flash_write_word(void* address, unsigned int data_word) {
+    NVMADDR = (unsigned int)address;
+    NVMDATA = data_word;
+    NVMCONbits.NVMOP = ProgramWord;
+    return flash_commit();
+}
+
+#ifdef ENABLE_DOUBLEWORD_PROGRAMMING
+unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned int word_l) {
+    NVMADDR = (unsigned int)address;
+    NVMDATA0 = word_h;
+    NVMDATA1 = word_l;
+    NVMCONbits.NVMOP = ProgramWord;
+    return flash_commit();
+}
+#endif
+
 unsigned int flash_commit() {
     unsigned int status; // Disable interrupts
     asm volatile ("di %0" : "=r" (status));

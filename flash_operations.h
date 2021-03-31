@@ -20,8 +20,8 @@
  */
 #ifndef FLASH_OPERATIONS_H
 #define FLASH_OPERATIONS_H
-//// Documentation: DS60001121 - Register 5-1
 
+/// Documentation: DS60001121 - Register 5-1
 typedef enum {
     NOP                 = 0b0000, // No operation
     FlashFullErase      = 0b0101, // Program Flash Memory Erase Operation - For self destruction
