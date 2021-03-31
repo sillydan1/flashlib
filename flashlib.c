@@ -70,9 +70,9 @@ unsigned int flash_write_word(void* address, unsigned int data_word) {
 #ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned int word_l) {
     NVMADDR = (unsigned int)address;
-    NVMDATA0 = word_h;
-    NVMDATA1 = word_l;
-    NVMCONbits.NVMOP = ProgramWord;
+    NVMDATA0 = word_l;
+    NVMDATA1 = word_h;
+    NVMCONbits.NVMOP = ProgramDoubleWord;
     return flash_commit();
 }
 #endif
