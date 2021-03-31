@@ -25,11 +25,36 @@
 /// Read a word from provided eeprom address
 /// Always returns 0 (nil) if provided address is out of bounds of the eeprom sector
 unsigned int eeprom_read_word(void* ee_address);
+
 /// Write a single word to provided eeprom address
 /// Always returns 1 (one) if provided address is out of bounds of the eeprom sector
 unsigned int eeprom_write_word(void* ee_address, unsigned int data_word);
 #endif
-// FLASH page I/O
 
+/// Read a single word from provided program memory address.
+/// No out-of-bounds check is performed, so be careful.
+/// TODO: What happens if read from nonexistent address - garbage data? Or reset trigger? - Undefined behavior perhaps?
+unsigned int flash_read_word(void* address);
+
+/// Write a single word to provided program memory address.
+/// Returns 0 (nil) if successful
+unsigned int flash_write_word(void* address, unsigned int data_word);
+
+/// Write a double word to provided program memory address.
+/// Returns 0 (nil) if successful
+unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned int word_l);
+
+/// Write a row of data to provided program memory address.
+/// Returns 0 (nil) if successful.
+unsigned int flash_write_row(void* address, void* data);
+
+/// Erase a page in program memory.
+/// Returns 0 (nil) if successful
+unsigned int flash_erase_page(void* address);
+
+/// Erase all data in program memory.
+/// CAUTION: This will erase all of your program data. Including emulated EEPROM data.
+/// Returns 0 (nil) if successful
+unsigned int flash_erase_all_program_memory();
 
 #endif //FLASHLIB_H
