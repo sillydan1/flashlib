@@ -48,7 +48,7 @@ unsigned int eeprom_read_word(void* ee_address) {
 
 unsigned int eeprom_write_word(void* ee_address, unsigned int data_word) {
     if(!is_address_within_eeprom_sector(ee_address))
-        return 0;
+        return 1;
     NVMADDR = (unsigned int)ee_address;
     NVMDATA = data_word;
     NVMCONbits.NVMOP = ProgramWord;
