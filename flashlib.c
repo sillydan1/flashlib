@@ -21,12 +21,18 @@
 #include <xc.h>
 #include "flashlib.h"
 #include "flash_operations.h"
-// private functions:
 #define NVMCONERRs_bitmask 0x3000; // LVDERR | WRERR
 unsigned int flash_commit();
-
 /// NOTE: On PIC32MX1XX/2XX/5XX 64/100-pin devices
 /// the Flash page size is 1 KB and the row size is 128 bytes (256 IW and32IW, respectively).
+
+#ifdef ENABLE_EEPROM_EMU
+#ifndef EEPROM_SECTOR_START
+#error "EEPROM_SECTOR_START is not defined"
+#endif
+#ifndef EEPROM_SECTOR_END
+#error "EEPROM_SECTOR_END is not defined"
+#endif
 
 unsigned int eeprom_read_word(void* ee_physical_address) {
     // TODO: Assert that the address is within the allotted "eeprom" flash memory
@@ -40,6 +46,7 @@ unsigned int eeprom_write_word(void* ee_physical_address, unsigned int data_word
     NVMCONbits.NVMOP = ProgramWord;
     return flash_commit();
 }
+#endif
 
 unsigned int flash_commit() {
     unsigned int status; // Disable interrupts

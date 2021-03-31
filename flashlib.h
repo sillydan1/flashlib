@@ -21,10 +21,12 @@
 #ifndef FLASHLIB_H
 #define FLASHLIB_H
 
+#ifdef ENABLE_EEPROM_EMU
 // EEPROM emulation
 unsigned int eeprom_read_word(void* ee_physical_address);
 unsigned int eeprom_write_word(void* ee_physical_address, unsigned int data_word);
-
+#endif
 // FLASH page I/O
+
 
 #endif //FLASHLIB_H

@@ -19,4 +19,16 @@ cmake_minimum_required(VERSION 3.7.0)
 #    along with flashlib.  If not, see <https://www.gnu.org/licenses/>.
 project(flashlib)
 
+set(DEFS)
+if(${ENABLE_EEPROM_EMU})
+    set(DEFS ${DEFS} -DENABLE_EEPROM_EMU)
+endif()
+if(${EEPROM_SECTOR_START})
+    set(DEFS ${DEFS} -DEEPROM_SECTOR_START=${EEPROM_SECTOR_START})
+endif()
+if(${EEPROM_SECTOR_END})
+    set(DEFS ${DEFS} -DEEPROM_SECTOR_END=${EEPROM_SECTOR_END})
+endif()
+
+add_definitions(${DEFS})
 add_library(${PROJECT_NAME} flashlib.c)
