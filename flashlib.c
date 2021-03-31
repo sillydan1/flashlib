@@ -28,20 +28,28 @@ unsigned int flash_commit();
 
 #ifdef ENABLE_EEPROM_EMU
 #ifndef EEPROM_SECTOR_START
-#error "EEPROM_SECTOR_START is not defined"
+#error "EEPROM_SECTOR_START is not defined. Provide a physical program flash address for this"
 #endif
 #ifndef EEPROM_SECTOR_END
-#error "EEPROM_SECTOR_END is not defined"
+#error "EEPROM_SECTOR_END is not defined. Provide a physical program flash address for this"
 #endif
 
-unsigned int eeprom_read_word(void* ee_physical_address) {
-    // TODO: Assert that the address is within the allotted "eeprom" flash memory
-    return *(unsigned int*)ee_physical_address;
+// TODO: This is for physical address space in flash memory.
+unsigned char is_address_within_eeprom_sector(void* ee_physical_address) {
+    return (unsigned int)ee_physical_address > EEPROM_SECTOR_START &&
+           (unsigned int)ee_physical_address < EEPROM_SECTOR_END;
 }
 
-unsigned int eeprom_write_word(void* ee_physical_address, unsigned int data_word) {
-    // TODO: Assert that the address is within the allotted "eeprom" flash memory
-    NVMADDR = (unsigned int)ee_physical_address;
+unsigned int eeprom_read_word(void* ee_address) {
+    if(!is_address_within_eeprom_sector(ee_address))
+        return 0;
+    return *(unsigned int*)ee_address;
+}
+
+unsigned int eeprom_write_word(void* ee_address, unsigned int data_word) {
+    if(!is_address_within_eeprom_sector(ee_address))
+        return 0;
+    NVMADDR = (unsigned int)ee_address;
     NVMDATA = data_word;
     NVMCONbits.NVMOP = ProgramWord;
     return flash_commit();

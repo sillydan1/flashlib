@@ -22,9 +22,12 @@
 #define FLASHLIB_H
 
 #ifdef ENABLE_EEPROM_EMU
-// EEPROM emulation
-unsigned int eeprom_read_word(void* ee_physical_address);
-unsigned int eeprom_write_word(void* ee_physical_address, unsigned int data_word);
+/// Read a word from provided eeprom address
+/// Always returns 0 (nil) if provided address is out of bounds of the eeprom sector
+unsigned int eeprom_read_word(void* ee_address);
+/// Write a single word to provided eeprom address
+/// Always returns 0 (nil) if provided address is out of bounds of the eeprom sector
+unsigned int eeprom_write_word(void* ee_address, unsigned int data_word);
 #endif
 // FLASH page I/O
 
