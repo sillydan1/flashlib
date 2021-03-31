@@ -4,6 +4,16 @@ So far this library only supports the PIC32MX1xx/2xx/5xx 64/100pin devices from 
 
 This library assumes you have the `xc32-gcc` compiler chain installed. If you haven't, you can find it [here](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-xc-compilers).
 
+## Supported Functions
+ - `eeprom_read_word` Reads a word from emulated eeprom, if enabled
+ - `eeprom_write_word` Writes a word to emulated eeprom, if enabled
+ - `flash_read_word` Reads a word from program memory flash
+ - `flash_write_word` Writes a word to program memory flash
+ - `flash_write_doubleword` Writes a doubleword to program memory flash, if enabled
+ - `flash_write_row` Writes a row of data to program memory flash
+ - `flash_erase_page` Erases a page of program memory flash
+ - `flash_erase_all_program_memory` Erases all of program memory flash - Including emulated eeprom sector
+
 ## Use in your CMake projects
 Simply add the folder as a subdirectory. Don't forget to set the compiler to the `xc32-gcc` compiler.
 ```
@@ -26,6 +36,12 @@ Below is an example usage:
 ```
 cmake -DENABLE_EEPROM_EMU=1 -DEEPROM_SECTOR_START=0x1D070000 -DEEPROM_SECTOR_END=0x1D07FFFF ..
 ```
+
+## Flash programming support
+If your MCU supports double word programming (not all do) you can compile with support for that with the `ENABLE_DOUBLEWORD_PROGRAMMING` cmake flag variable. 
+
+# Contribute
+If you have any additions you want submitted, feel free to open up a pull request or issue. Make sure to add yourself in the list of authors in the appropriate file(s). 
 
 ### Notes
 CMake tries to check if the provided compiler i "valid", but `xc32-gcc` does not support the standard `-rdynamic` flag.
