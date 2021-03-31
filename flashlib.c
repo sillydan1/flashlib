@@ -77,6 +77,24 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 }
 #endif
 
+unsigned int flash_write_row(void* address, void* data) {
+    NVMADDR = (unsigned int) address;
+    NVMSRCADDR = (unsigned int) data;
+    NVMCONbits.NVMOP = ProgramRow;
+    return flash_commit();
+}
+
+unsigned int flash_erase_page(void* address) {
+    NVMADDR = (unsigned int) address;
+    NVMCONbits.NVMOP = PageErase;
+    return flash_commit();
+}
+
+unsigned int flash_erase_all_program_memory() {
+    NVMCONbits.NVMOP = FlashFullErase;
+    return flash_commit();
+}
+
 unsigned int flash_commit() {
     unsigned int status; // Disable interrupts
     asm volatile ("di %0" : "=r" (status));
