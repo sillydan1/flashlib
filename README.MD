@@ -31,10 +31,10 @@ The following cmake variables are available:
 -DEEPROM_SECTOR_START=<physaddr> # Determines start address for eeprom dedicated flash memory
 -DEEPROM_SECTOR_END=<physaddr>   # Determines end address for eeprom dedicated flash memory
 ```
-The start and end sector variables are required if you want to use eeprom emulation. If `ENABLE_EEPROM_EMU` is not defined, no need to define the start and end sectors.
+The start and end sector variables are required if you want to use eeprom emulation. If `ENABLE_EEPROM_EMU` is not defined, no need to define the start and end sectors. Note that all flash addresses should be in kernel-space (KSEG0/1).
 Below is an example usage:
 ```
-cmake -DENABLE_EEPROM_EMU=1 -DEEPROM_SECTOR_START=0x1D070000 -DEEPROM_SECTOR_END=0x1D07FFFF ..
+cmake -DENABLE_EEPROM_EMU=1 -DEEPROM_SECTOR_START=0x9D070000 -DEEPROM_SECTOR_END=0x9D07FFFF ..
 ```
 
 ## Flash programming support
