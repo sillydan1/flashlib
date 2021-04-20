@@ -4,7 +4,7 @@ So far this library only supports the PIC32MX1xx/2xx/5xx 64/100pin devices from 
 
 This library assumes you have the `xc32-gcc` compiler chain installed. If you haven't, you can find it [here](https://www.microchip.com/en-us/development-tools-tools-and-software/mplab-xc-compilers).
 
-## Supported Functions
+## Supported Features
  - `eeprom_read_word` Reads a word from emulated eeprom, if enabled
  - `eeprom_write_word` Writes a word to emulated eeprom, if enabled
  - `flash_read_word` Reads a word from program memory flash
@@ -13,6 +13,7 @@ This library assumes you have the `xc32-gcc` compiler chain installed. If you ha
  - `flash_write_row` Writes a row of data to program memory flash
  - `flash_erase_page` Erases a page of program memory flash
  - `flash_erase_all_program_memory` Erases all of program memory flash - Including emulated eeprom sector
+ - Custom Protected flash sector support, to avoid situations like bootloaders overriding itself
 
 ## Use in your CMake projects
 Simply add the folder as a subdirectory. Don't forget to set the compiler to the `xc32-gcc` compiler.
@@ -28,8 +29,8 @@ You can specify at compile-time what section of flash you want to dedicate to ee
 The following cmake variables are available: 
 ```
 -DENABLE_EEPROM_EMU              # Enabling compilation of eeprom emulation
--DEEPROM_SECTOR_START=<physaddr> # Determines start address for eeprom dedicated flash memory
--DEEPROM_SECTOR_END=<physaddr>   # Determines end address for eeprom dedicated flash memory
+-DEEPROM_SECTOR_START=<ksegaddr> # Determines start address for eeprom dedicated flash memory
+-DEEPROM_SECTOR_END=<ksegaddr>   # Determines end address for eeprom dedicated flash memory
 ```
 The start and end sector variables are required if you want to use eeprom emulation. If `ENABLE_EEPROM_EMU` is not defined, no need to define the start and end sectors. Note that all flash addresses should be in kernel-space (KSEG0/1).
 Below is an example usage:
@@ -39,6 +40,14 @@ cmake -DENABLE_EEPROM_EMU=1 -DEEPROM_SECTOR_START=0x9D070000 -DEEPROM_SECTOR_END
 
 ## Flash programming support
 If your MCU supports double word programming (not all do) you can compile with support for that with the `ENABLE_DOUBLEWORD_PROGRAMMING` cmake flag variable. 
+
+### Protected Sector Support
+You can protect a segment of flash, such that the library will refuse to write to addresses within that segment. 
+Use these cmake variables to determine your protected segment:
+```
+-DPROTECTED_FLASH_SECTOR_FROM=<ksegaddr> # Determines start address for flash protection
+-DPROTECTED_FLASH_SECTOR_TO=<ksegaddr> # Determines end address for flash protection
+```
 
 # Contribute
 If you have any additions you want submitted, feel free to open up a pull request or issue. Make sure to add yourself in the list of authors in the appropriate file(s). 
