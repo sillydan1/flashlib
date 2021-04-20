@@ -33,11 +33,17 @@ unsigned int flash_commit();
 #ifndef EEPROM_SECTOR_END
 #error "EEPROM_SECTOR_END is not defined. Provide a physical program flash address for this"
 #endif
+#if defined(PROTECTED_FLASH_SECTOR_FROM) && !defined(PROTECTED_FLASH_SECTOR_TO)
+#error "When defining PROTECTED_FLASH_SECTOR_FROM you should also provide PROTECTED_FLASH_SECTOR_TO"
+#endif
+#if defined(PROTECTED_FLASH_SECTOR_TO) && !defined(PROTECTED_FLASH_SECTOR_FROM)
+#error "When defining PROTECTED_FLASH_SECTOR_TO you should also provide PROTECTED_FLASH_SECTOR_FROM"
+#endif
 
 // TODO: This is for physical address space in flash memory.
-unsigned char is_address_within_eeprom_sector(void* ee_physical_address) {
-    return (unsigned int)ee_physical_address > EEPROM_SECTOR_START &&
-           (unsigned int)ee_physical_address < EEPROM_SECTOR_END;
+unsigned char is_address_within_eeprom_sector(void* ee_kseg_address) {
+    return (unsigned int)ee_kseg_address > EEPROM_SECTOR_START &&
+           (unsigned int)ee_kseg_address < EEPROM_SECTOR_END;
 }
 
 unsigned int eeprom_read_word(void* ee_address) {
@@ -56,11 +62,24 @@ unsigned int eeprom_write_word(void* ee_address, unsigned int data_word) {
 }
 #endif
 
+unsigned char is_address_within_protected_sector(void* kseg_address) {
+#if defined(PROTECTED_FLASH_SECTOR_FROM) && defined(PROTECTED_FLASH_SECTOR_TO)
+    return  (unsigned int)kseg_address > PROTECTED_FLASH_SECTOR_FROM &&
+            (unsigned int)kseg_address < PROTECTED_FLASH_SECTOR_TO;
+#else
+    return 0;
+#endif
+}
+
 unsigned int flash_read_word(void* address) {
+    if(is_address_within_protected_sector(address))
+        return 0;
     return *(unsigned int*)address;
 }
 
 unsigned int flash_write_word(void* address, unsigned int data_word) {
+    if(is_address_within_protected_sector(address))
+        return 0;
     NVMADDR = (unsigned int)address;
     NVMDATA = data_word;
     NVMCONbits.NVMOP = ProgramWord;
@@ -69,6 +88,8 @@ unsigned int flash_write_word(void* address, unsigned int data_word) {
 
 #ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned int word_l) {
+    if(is_address_within_protected_sector(address))
+        return 0;
     NVMADDR = (unsigned int)address;
     NVMDATA0 = word_l;
     NVMDATA1 = word_h;
@@ -78,6 +99,8 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 #endif
 
 unsigned int flash_write_row(void* address, void* data) {
+    if(is_address_within_protected_sector(address))
+        return 0;
     NVMADDR = (unsigned int) address;
     NVMSRCADDR = (unsigned int) data;
     NVMCONbits.NVMOP = ProgramRow;
@@ -85,6 +108,8 @@ unsigned int flash_write_row(void* address, void* data) {
 }
 
 unsigned int flash_erase_page(void* address) {
+    if(is_address_within_protected_sector(address))
+        return 0;
     NVMADDR = (unsigned int) address;
     NVMCONbits.NVMOP = PageErase;
     return flash_commit();
