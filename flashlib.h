@@ -20,25 +20,26 @@
  */
 #ifndef FLASHLIB_H
 #define FLASHLIB_H
+typedef unsigned int flword_t;
 
 #ifdef ENABLE_EEPROM_EMU
 /// Read a word from provided eeprom address
 /// Always returns 0 (nil) if provided address is out of bounds of the eeprom sector
-unsigned int eeprom_read_word(void* ee_address);
+flword_t eeprom_read_word(flword_t* ee_address);
 
 /// Write a single word to provided eeprom address
 /// Always returns 1 (one) if provided address is out of bounds of the eeprom sector
-unsigned int eeprom_write_word(void* ee_address, unsigned int data_word);
+flword_t eeprom_write_word(flword_t ee_address, flword_t data_word);
 #endif
 
 /// Read a single word from provided program memory address.
 /// No out-of-bounds check is performed, so be careful.
 /// TODO: What happens if read from nonexistent address - garbage data? Or reset trigger? - Undefined behavior perhaps?
-unsigned int flash_read_word(void* address);
+flword_t flash_read_word(flword_t* address);
 
 /// Write a single word to provided program memory address.
 /// Returns 0 (nil) if successful
-unsigned int flash_write_word(void* address, unsigned int data_word);
+flword_t flash_write_word(flword_t address, flword_t data_word);
 
 #ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 /// Write a double word to provided program memory address.
@@ -48,15 +49,15 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 
 /// Write a row of data to provided program memory address.
 /// Returns 0 (nil) if successful.
-unsigned int flash_write_row(void* address, void* data);
+flword_t flash_write_row(flword_t address, void* data);
 
 /// Erase a page in program memory.
 /// Returns 0 (nil) if successful
-unsigned int flash_erase_page(void* address);
+flword_t flash_erase_page(flword_t address);
 
 /// Erase all data in program memory.
 /// CAUTION: This will erase all of your program data. Including emulated EEPROM data.
 /// Returns 0 (nil) if successful
-unsigned int flash_erase_all_program_memory();
+flword_t flash_erase_all_program_memory();
 
 #endif //FLASHLIB_H

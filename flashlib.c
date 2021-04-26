@@ -22,7 +22,7 @@
 #include "flashlib.h"
 #include "flash_operations.h"
 #define NVMCONERRs_bitmask 0x3000; // LVDERR | WRERR
-unsigned int flash_commit();
+flword_t flash_commit();
 /// NOTE: On PIC32MX1XX/2XX/5XX 64/100-pin devices
 /// the Flash page size is 1 KB and the row size is 128 bytes (256 IW and32IW, respectively).
 
@@ -41,46 +41,46 @@ unsigned int flash_commit();
 #endif
 
 // TODO: This is for physical address space in flash memory.
-unsigned char is_address_within_eeprom_sector(void* ee_kseg_address) {
-    return (unsigned int)ee_kseg_address > EEPROM_SECTOR_START &&
-           (unsigned int)ee_kseg_address < EEPROM_SECTOR_END;
+unsigned char is_address_within_eeprom_sector(flword_t ee_kseg_address) {
+    return ee_kseg_address > EEPROM_SECTOR_START &&
+           ee_kseg_address < EEPROM_SECTOR_END;
 }
 
-unsigned int eeprom_read_word(void* ee_address) {
-    if(!is_address_within_eeprom_sector(ee_address))
+flword_t eeprom_read_word(flword_t* ee_address) {
+    if(!is_address_within_eeprom_sector((flword_t)ee_address))
         return 0;
-    return *(unsigned int*)ee_address;
+    return *ee_address;
 }
 
-unsigned int eeprom_write_word(void* ee_address, unsigned int data_word) {
+flword_t eeprom_write_word(flword_t ee_address, flword_t data_word) {
     if(!is_address_within_eeprom_sector(ee_address))
         return 1;
-    NVMADDR = (unsigned int)ee_address;
+    NVMADDR = ee_address;
     NVMDATA = data_word;
     NVMCONbits.NVMOP = ProgramWord;
     return flash_commit();
 }
 #endif
 
-unsigned char is_address_within_protected_sector(void* kseg_address) {
+unsigned char is_address_within_protected_sector(flword_t kseg_address) {
 #if defined(PROTECTED_FLASH_SECTOR_FROM) && defined(PROTECTED_FLASH_SECTOR_TO)
-    return  (unsigned int)kseg_address > PROTECTED_FLASH_SECTOR_FROM &&
-            (unsigned int)kseg_address < PROTECTED_FLASH_SECTOR_TO;
+    return  kseg_address > PROTECTED_FLASH_SECTOR_FROM &&
+            kseg_address < PROTECTED_FLASH_SECTOR_TO;
 #else
     return 0;
 #endif
 }
 
-unsigned int flash_read_word(void* address) {
-    if(is_address_within_protected_sector(address))
+flword_t flash_read_word(flword_t* address) {
+    if(is_address_within_protected_sector((flword_t)address))
         return 0;
-    return *(unsigned int*)address;
+    return *address;
 }
 
-unsigned int flash_write_word(void* address, unsigned int data_word) {
+flword_t flash_write_word(flword_t address, flword_t data_word) {
     if(is_address_within_protected_sector(address))
         return 0;
-    NVMADDR = (unsigned int)address;
+    NVMADDR = address;
     NVMDATA = data_word;
     NVMCONbits.NVMOP = ProgramWord;
     return flash_commit();
@@ -98,30 +98,30 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 }
 #endif
 
-unsigned int flash_write_row(void* address, void* data) {
+flword_t flash_write_row(flword_t address, void* data) {
     if(is_address_within_protected_sector(address))
         return 0;
-    NVMADDR = (unsigned int) address;
-    NVMSRCADDR = (unsigned int) data;
+    NVMADDR = address;
+    NVMSRCADDR = (flword_t) data;
     NVMCONbits.NVMOP = ProgramRow;
     return flash_commit();
 }
 
-unsigned int flash_erase_page(void* address) {
+flword_t flash_erase_page(flword_t address) {
     if(is_address_within_protected_sector(address))
         return 0;
-    NVMADDR = (unsigned int) address;
+    NVMADDR = address;
     NVMCONbits.NVMOP = PageErase;
     return flash_commit();
 }
 
-unsigned int flash_erase_all_program_memory() {
+flword_t flash_erase_all_program_memory() {
     NVMCONbits.NVMOP = FlashFullErase;
     return flash_commit();
 }
 
-unsigned int flash_commit() {
-    unsigned int status; // Disable interrupts
+flword_t flash_commit() {
+    flword_t status; // Disable interrupts
     asm volatile ("di %0" : "=r" (status));
     // Write to flash
     NVMCONbits.WREN = 1;
