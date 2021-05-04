@@ -23,12 +23,12 @@
 
 /// Documentation: DS60001121 - Register 5-1
 typedef enum {
-    NOP                 = 0x4000, // No operation
-    FlashFullErase      = 0x4005, // Program Flash Memory Erase Operation - For self destruction
-    PageErase           = 0x4004, // Erases page selected by NVMADDR
-    ProgramRow          = 0x4003, // Programs row selected by NVMADDR (Supported by all devices)
-    ProgramDoubleWord   = 0x4010, // Programs double-word selected by NVMADDR (Supported by select devices)
-    ProgramWord         = 0x4001  // Programs word selected by NVMADDR (Supported by most devices)
+    NOP                 = NVMCON_WREN + 0x0000, // No operation
+    FlashFullErase      = NVMCON_WREN + 0x0005, // Program Flash Memory Erase Operation - For self destruction
+    PageErase           = NVMCON_WREN + 0x0004, // Erases page selected by NVMADDR
+    ProgramRow          = NVMCON_WREN + 0x0003, // Programs row selected by NVMADDR (Supported by all devices)
+    ProgramDoubleWord   = NVMCON_WREN + 0x0010, // Programs double-word selected by NVMADDR (Supported by select devices)
+    ProgramWord         = NVMCON_WREN + 0x0001  // Programs word selected by NVMADDR (Supported by most devices)
 } flash_operation_t;
 
 #endif //FLASH_OPERATIONS_H

@@ -31,7 +31,7 @@ flword_t eeprom_read_word(fladdr_t* ee_address);
 
 /// Write a single word to provided eeprom address
 /// Always returns 1 (one) if provided address is out of bounds of the eeprom sector
-flstatus_t eeprom_write_word(fladdr_t ee_address, fladdr_t data_word);
+flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word);
 #endif
 
 /// Read a single word from provided program memory address.
@@ -41,7 +41,7 @@ flword_t flash_read_word(fladdr_t* address);
 
 /// Write a single word to provided program memory address.
 /// Returns 0 (nil) if successful
-flstatus_t flash_write_word(fladdr_t address, fladdr_t data_word);
+flstatus_t flash_write_word(fladdr_t address, flword_t data_word);
 
 #ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 /// Write a double word to provided program memory address.
@@ -51,7 +51,7 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 
 /// Write a row of data to provided program memory address.
 /// Returns 0 (nil) if successful.
-flstatus_t flash_write_row(fladdr_t address, void* data);
+flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr);
 
 /// Erase a page in program memory.
 /// Returns 0 (nil) if successful
