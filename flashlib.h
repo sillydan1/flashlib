@@ -23,14 +23,16 @@
 typedef uint32_t fladdr_t;
 typedef uint32_t flword_t;
 typedef uint16_t flstatus_t;
+#define FLASH_PROTECTED_ERR 0x8
+#define EEPROM_OUT_OF_RANGE_ERR 0x9
 
 #ifdef ENABLE_EEPROM_EMU
 /// Read a word from provided eeprom address
-/// Always returns 0 (nil) if provided address is out of bounds of the eeprom sector
+/// Returns EEPROM_OUT_OF_RANGE_ERR if provided address is not in the eeprom sector
 flword_t eeprom_read_word(fladdr_t* ee_address);
 
 /// Write a single word to provided eeprom address
-/// Always returns 1 (one) if provided address is out of bounds of the eeprom sector
+/// Returns EEPROM_OUT_OF_RANGE_ERR if provided address is not in the eeprom sector
 flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word);
 #endif
 
@@ -40,8 +42,15 @@ flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word);
 flword_t flash_read_word(fladdr_t* address);
 
 /// Write a single word to provided program memory address.
+/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful
 flstatus_t flash_write_word(fladdr_t address, flword_t data_word);
+
+/// Write a single byte to provided program memory address.
+/// Note: This is a read/modify/write function
+/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
+/// Returns 0 (nil) if successful
+flstatus_t flash_write_byte(fladdr_t address, uint8_t byte);
 
 #ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 /// Write a double word to provided program memory address.
@@ -50,16 +59,19 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 #endif
 
 /// Write a row of data to provided program memory address.
+/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful.
 flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr);
 
 /// Erase a page in program memory.
+/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful
 flstatus_t flash_erase_page(fladdr_t address);
 
+#ifndef DISABLE_ERASE_ALL_PROGRAM_MEM
 /// Erase all data in program memory.
 /// CAUTION: This will erase all of your program data. Including emulated EEPROM data.
-/// Returns 0 (nil) if successful
 flstatus_t flash_erase_all_program_memory();
+#endif
 
 #endif //FLASHLIB_H

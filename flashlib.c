@@ -50,13 +50,13 @@ unsigned char is_address_within_eeprom_sector(fladdr_t ee_kseg_address) {
 
 flword_t eeprom_read_word(fladdr_t* ee_address) {
     if(!is_address_within_eeprom_sector((fladdr_t)ee_address))
-        return 0;
+        return EEPROM_OUT_OF_RANGE_ERR;
     return *ee_address;
 }
 
 flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word) {
     if(!is_address_within_eeprom_sector(ee_address))
-        return 1;
+        return EEPROM_OUT_OF_RANGE_ERR;
     NVMDATA = data_word;
     NVMADDR = KVA_TO_PA(ee_address);
     return flash_commit(ProgramWord);
@@ -74,22 +74,34 @@ unsigned char is_address_within_protected_sector(fladdr_t phys_address) {
 
 flword_t flash_read_word(fladdr_t* address) {
     if(is_address_within_protected_sector((fladdr_t)address))
-        return 0;
+        return FLASH_PROTECTED_ERR;
     return *address;
 }
 
 flstatus_t flash_write_word(fladdr_t address, flword_t data_word) {
     if(is_address_within_protected_sector(address))
-        return 0;
+        return FLASH_PROTECTED_ERR;
     NVMDATA = data_word;
     NVMADDR = (fladdr_t) KVA_TO_PA(address);
     return flash_commit(ProgramWord);
 }
 
+flstatus_t flash_write_byte(fladdr_t address, uint8_t byte) {
+    if(is_address_within_protected_sector(address))
+        return FLASH_PROTECTED_ERR;
+    const uint8_t offset = address % 4;
+    const fladdr_t aligned_32bit_address = address - offset;
+    flword_t data_at_address = flash_read_word((fladdr_t *)aligned_32bit_address);
+    const flword_t byte_as_aligned_word = byte << offset*8;
+    const flword_t aligned_mask = ~(0xFF << offset*8);
+    data_at_address = (data_at_address & aligned_mask) | (byte_as_aligned_word);
+    return flash_write_word(aligned_32bit_address, data_at_address);
+}
+
 #ifdef ENABLE_DOUBLEWORD_PROGRAMMING
 flstatus_t flash_write_doubleword(fladdr_t address, flword_t word_h, flword_t word_l) {
     if(is_address_within_protected_sector(address))
-        return 0;
+        return FLASH_PROTECTED_ERR;
     NVMADDR = (fladdr_t) KVA_TO_PA(address);
     // If NVMDATA0, NVMDATA1 etc does not exist, your MCU might not support doubleword programming
     NVMDATA0 = word_l;
@@ -100,7 +112,7 @@ flstatus_t flash_write_doubleword(fladdr_t address, flword_t word_h, flword_t wo
 
 flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr) {
     if(is_address_within_protected_sector(address))
-        return 0;
+        return FLASH_PROTECTED_ERR;
     NVMSRCADDR = (fladdr_t) KVA_TO_PA(data_addr);
     NVMADDR = KVA_TO_PA(address);
     return flash_commit(ProgramRow);
@@ -108,7 +120,7 @@ flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr) {
 
 flstatus_t flash_erase_page(fladdr_t address) {
     if(is_address_within_protected_sector(address))
-        return 0;
+        return FLASH_PROTECTED_ERR;
     NVMADDR = (fladdr_t) KVA_TO_PA(address);
     return flash_commit(PageErase);
 }
