@@ -43,5 +43,9 @@ if(DEFINED PROTECTED_FLASH_SECTOR_TO)
     set(DEFS ${DEFS} PROTECTED_FLASH_SECTOR_TO=${PROTECTED_FLASH_SECTOR_TO})
 endif()
 
+add_compile_options(
+    -std=gnu11
+    -Os
+)
 add_compile_definitions(${DEFS})
 add_library(${PROJECT_NAME} flashlib.c)
