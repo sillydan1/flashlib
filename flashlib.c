@@ -102,6 +102,17 @@ flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t d
     return flash_write_page(address, flash_page);
 }
 
+flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_size) {
+    if(is_address_within_protected_sector(address))
+        return FLASH_PROTECTED_ERR;
+
+    flword_t flash_page[PAGE_SIZE];
+    memcpy(flash_page, (flword_t*)address, PAGE_SIZE);
+    flword_t offset = address % PAGE_SIZE;
+    memcpy(&flash_page[offset], data, min(data_size, PAGE_SIZE - offset));
+    return flash_write_page(address, flash_page);
+}
+
 flstatus_t flash_write_page(fladdr_t address, const flword_t* data) {
     if(is_address_within_protected_sector(address))
         return FLASH_PROTECTED_ERR;
