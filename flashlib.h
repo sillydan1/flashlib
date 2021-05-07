@@ -25,11 +25,12 @@ typedef uint32_t flword_t;
 typedef uint16_t flstatus_t;
 #define FLASH_PROTECTED_ERR 0x8
 #define EEPROM_OUT_OF_RANGE_ERR 0x9
+#define FLASH_NOT_ALIGNED 0x10
 
 #ifdef ENABLE_EEPROM_EMU
 /// Read a word from provided eeprom address
 /// Returns EEPROM_OUT_OF_RANGE_ERR if provided address is not in the eeprom sector
-flword_t eeprom_read_word(fladdr_t* ee_address);
+flword_t eeprom_read_word(flword_t* ee_address);
 
 /// Write a single word to provided eeprom address
 /// Returns EEPROM_OUT_OF_RANGE_ERR if provided address is not in the eeprom sector
@@ -61,12 +62,29 @@ unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned
 /// Write a row of data to provided program memory address.
 /// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful.
-flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr);
+flstatus_t flash_write_row(fladdr_t address, const flword_t* data);
 
 /// Erase a page in program memory.
 /// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful
 flstatus_t flash_erase_page(fladdr_t address);
+
+/// Writes a page in program memory.
+/// Note: provided address should be page-aligned
+/// Note: overrides any data that already exists on the page
+/// Note: provided data array is assumed to be PAGE_SIZE of length
+/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
+/// Returns FLASH_NOT_ALIGNED if address is not page-aligned
+/// Returns 0 (nil) if successful
+flstatus_t flash_write_page(fladdr_t address, const flword_t* data);
+
+/// Read / Modify / Write cycle for programming a page with data with size less than a page
+/// Note: provided address should be page-aligned
+/// Note: if data_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
+/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
+/// Returns FLASH_NOT_ALIGNED if address is not page-aligned
+/// Returns 0 (nil) if successful
+flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_size);
 
 #ifndef DISABLE_ERASE_ALL_PROGRAM_MEM
 /// Erase all data in program memory.

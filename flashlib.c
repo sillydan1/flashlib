@@ -20,6 +20,7 @@
  */
 #include <xc.h>
 #include <sys/kmem.h>
+#include <string.h>
 #include "flashlib.h"
 #include "flash_operations.h"
 #define NVMCONERRs_bitmask ( _NVMCON_WRERR_MASK | _NVMCON_LVDERR_MASK )
@@ -27,6 +28,11 @@
 flstatus_t flash_commit(flash_operation_t op);
 /// NOTE: On PIC32MX1XX/2XX/5XX 64/100-pin devices
 /// the Flash page size is 1 KB and the row size is 128 bytes (256 IW and32IW, respectively).
+#define PAGE_SIZE 1024
+#define ROW_SIZE 128
+#define ROWS_IN_PAGE (PAGE_SIZE / ROW_SIZE)
+#define WORDS_IN_PAGE (PAGE_SIZE / sizeof(flword_t))
+#define ABS(N) (((N)<0)?(-(N)):(N))
 
 #ifdef ENABLE_EEPROM_EMU
 #ifndef EEPROM_SECTOR_START
@@ -34,6 +40,9 @@ flstatus_t flash_commit(flash_operation_t op);
 #endif
 #ifndef EEPROM_SECTOR_END
 #error "EEPROM_SECTOR_END is not defined. Provide a physical program flash address for this"
+#endif
+#if ABS((EEPROM_SECTOR_START - (EEPROM_SECTOR_END+1))) < PAGE_SIZE
+#error "EEPROM sector is smaller than device's page size"
 #endif
 #if defined(PROTECTED_FLASH_SECTOR_FROM) && !defined(PROTECTED_FLASH_SECTOR_TO)
 #error "When defining PROTECTED_FLASH_SECTOR_FROM you should also provide PROTECTED_FLASH_SECTOR_TO"
@@ -48,7 +57,7 @@ unsigned char is_address_within_eeprom_sector(fladdr_t ee_kseg_address) {
            ee_kseg_address <= EEPROM_SECTOR_END;
 }
 
-flword_t eeprom_read_word(fladdr_t* ee_address) {
+flword_t eeprom_read_word(flword_t* ee_address) {
     if(!is_address_within_eeprom_sector((fladdr_t)ee_address))
         return EEPROM_OUT_OF_RANGE_ERR;
     return *ee_address;
@@ -68,7 +77,7 @@ unsigned char is_address_within_protected_sector(fladdr_t phys_address) {
     return KVA_TO_PA(phys_address) > KVA_TO_PA(PROTECTED_FLASH_SECTOR_FROM) &&
            KVA_TO_PA(phys_address) < KVA_TO_PA(PROTECTED_FLASH_SECTOR_TO);
 #else
-    return 0;
+    return 1;
 #endif
 }
 
@@ -110,10 +119,10 @@ flstatus_t flash_write_doubleword(fladdr_t address, flword_t word_h, flword_t wo
 }
 #endif
 
-flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr) {
+flstatus_t flash_write_row(fladdr_t address, const flword_t* data) {
     if(is_address_within_protected_sector(address))
         return FLASH_PROTECTED_ERR;
-    NVMSRCADDR = (fladdr_t) KVA_TO_PA(data_addr);
+    NVMSRCADDR = KVA_TO_PA((fladdr_t)data);
     NVMADDR = KVA_TO_PA(address);
     return flash_commit(ProgramRow);
 }
@@ -121,8 +130,45 @@ flstatus_t flash_write_row(fladdr_t address, fladdr_t data_addr) {
 flstatus_t flash_erase_page(fladdr_t address) {
     if(is_address_within_protected_sector(address))
         return FLASH_PROTECTED_ERR;
+    if(address % PAGE_SIZE != 0)
+        return FLASH_NOT_ALIGNED;
     NVMADDR = (fladdr_t) KVA_TO_PA(address);
     return flash_commit(PageErase);
+}
+
+flstatus_t flash_write_page(fladdr_t address, const flword_t* data) {
+    if(is_address_within_protected_sector(address))
+        return FLASH_PROTECTED_ERR;
+    if(address % PAGE_SIZE != 0)
+        return FLASH_NOT_ALIGNED;
+
+    flstatus_t status = 0;
+    status = flash_erase_page(address);
+    if(status != 0)
+        return status;
+
+    uint16_t i = 0;
+    for(uint16_t row = 0; row < ROWS_IN_PAGE; row++) {
+        status = flash_write_row(address, &data[i]);
+        i += ROW_SIZE;
+        address += ROW_SIZE;
+        if(status != 0)
+            return status;
+    }
+
+    return status;
+}
+
+flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_size) {
+    if(is_address_within_protected_sector(address))
+        return FLASH_PROTECTED_ERR;
+    if(address % PAGE_SIZE != 0)
+        return FLASH_NOT_ALIGNED;
+
+    flword_t flash_page[PAGE_SIZE];
+    memcpy(flash_page, (flword_t*)address, PAGE_SIZE);
+    memcpy(flash_page, data, data_size);
+    return flash_write_page(address, flash_page);
 }
 
 #ifndef DISABLE_ERASE_ALL_PROGRAM_MEM
