@@ -26,7 +26,7 @@ typedef enum {
     NOP                 = NVMCON_WREN + 0x0000, // No operation
     FlashFullErase      = NVMCON_WREN + 0x0005, // Program Flash Memory Erase Operation - For self destruction
     PageErase           = NVMCON_WREN + 0x0004, // Erases page selected by NVMADDR
-    ProgramRow          = NVMCON_WREN + 0x0003, // Programs row selected by NVMADDR (Supported by all devices)
+    ProgramRow          = NVMCON_WREN + 0x0003, // Programs row selected by NVMSRCADDR (Supported by all devices)
     ProgramDoubleWord   = NVMCON_WREN + 0x0010, // Programs double-word selected by NVMADDR (Supported by select devices)
     ProgramWord         = NVMCON_WREN + 0x0001  // Programs word selected by NVMADDR (Supported by most devices)
 } flash_operation_t;
