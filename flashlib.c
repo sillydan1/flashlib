@@ -160,8 +160,8 @@ flstatus_t flash_erase_all_program_memory() {
 #endif
 
 flstatus_t flash_commit(flash_operation_t op) {
-    fladdr_t status;
-    asm volatile ("di %0" : "=r" (status)); // TODO: dont use assembler for this
+    // Disable interrupts
+    fladdr_t status = __builtin_disable_interrupts();
 
     NVMCONCLR = NVMCON_clearmask;
     NVMCONSET = op; // NVMCON_WREN is part of this
@@ -172,10 +172,7 @@ flstatus_t flash_commit(flash_operation_t op) {
     while (NVMCONbits.WR);
 
     // Re-enable interrupts
-    if (status & 0x00000001)
-        asm volatile ("ei");
-    else
-        asm volatile ("di");
+    __builtin_mtc0(12, 0, status);
 
     NVMCONCLR = NVMCON_WREN;
     return NVMCON & NVMCONERRs_bitmask;
