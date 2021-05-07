@@ -37,27 +37,10 @@ flword_t eeprom_read_word(flword_t* ee_address);
 flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word);
 #endif
 
-/// Read a single word from provided program memory address.
-/// No out-of-bounds check is performed, so be careful.
-/// TODO: What happens if read from nonexistent address - garbage data? Or reset trigger? - Undefined behavior perhaps?
-flword_t flash_read_word(fladdr_t* address);
-
 /// Write a single word to provided program memory address.
 /// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful
 flstatus_t flash_write_word(fladdr_t address, flword_t data_word);
-
-/// Write a single byte to provided program memory address.
-/// Note: This is a read/modify/write function
-/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
-/// Returns 0 (nil) if successful
-flstatus_t flash_write_byte(fladdr_t address, uint8_t byte);
-
-#ifdef ENABLE_DOUBLEWORD_PROGRAMMING
-/// Write a double word to provided program memory address.
-/// Returns 0 (nil) if successful
-unsigned int flash_write_doubleword(void* address, unsigned int word_h, unsigned int word_l);
-#endif
 
 /// Write a row of data to provided program memory address.
 /// Returns FLASH_PROTECTED_ERR if address is in the protected sector

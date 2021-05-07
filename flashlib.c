@@ -70,13 +70,10 @@ flstatus_t flash_commit(flash_operation_t op);
         return *ee_address;
     }
 
-    // TODO: Reimplement this
     flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word) {
         if(!is_address_within_eeprom_sector(ee_address))
             return EEPROM_OUT_OF_RANGE_ERR;
-        NVMDATA = data_word;
-        NVMADDR = KVA_TO_PA(ee_address);
-        return flash_commit(ProgramWord);
+        return flash_program_page_offset(ee_address, &data_word, 1);
     }
 
 #endif // ENABLE_EEPROM_EMU
@@ -149,6 +146,10 @@ flstatus_t flash_write_row(fladdr_t address, const flword_t* data) {
     NVMSRCADDR = KVA_TO_PA((fladdr_t)data);
     NVMADDR = KVA_TO_PA(address);
     return flash_commit(ProgramRow);
+}
+
+flstatus_t flash_write_word(fladdr_t address, flword_t data_word) {
+    return flash_program_page_offset(address, &data_word, 1);
 }
 
 #ifndef DISABLE_ERASE_ALL_PROGRAM_MEM
