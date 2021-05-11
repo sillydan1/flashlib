@@ -26,10 +26,12 @@ typedef uint16_t flstatus_t;
 #define FLASH_PROTECTED_ERR 0x8
 #define EEPROM_OUT_OF_RANGE_ERR 0x9
 #define FLASH_NOT_ALIGNED 0x10
+#define FLASH_ADDRESS_NOT_KERNEL_SPACE 0x11
 
 #ifdef ENABLE_EEPROM_EMU
 /// Read a word from provided eeprom address
 /// Returns EEPROM_OUT_OF_RANGE_ERR if provided address is not in the eeprom sector
+/// Returns FLASH_ADDRESS_NOT_KERNEL_SPACE if kseg1_address is not in kernel space (cant read from physical address)
 flword_t eeprom_read_word(flword_t* ee_address);
 
 /// Write a single word to provided eeprom address
@@ -62,18 +64,21 @@ flstatus_t flash_erase_page(fladdr_t address);
 flstatus_t flash_write_page(fladdr_t address, const flword_t* data);
 
 /// Read / Modify / Write cycle for programming a page with data with size
-/// Note: provided address should be page-aligned
+/// Note: provided kseg1_address should be page-aligned
 /// Note: if data_byte_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
-/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
-/// Returns FLASH_NOT_ALIGNED if address is not page-aligned
+/// Returns FLASH_PROTECTED_ERR if kseg1_address is in the protected sector
+/// Returns FLASH_NOT_ALIGNED if kseg1_address is not page-aligned
+/// Returns FLASH_ADDRESS_NOT_KERNEL_SPACE if kseg1_address is not in kernel space (required for the read-part of the algorithm)
 /// Returns 0 (nil) if successful
-flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_byte_size);
+flstatus_t flash_program_page(fladdr_t kseg1_address, const flword_t* data, flword_t data_byte_size);
 
 /// Read / Modify / Write cycle for programming a page with data with size
 /// Note: if data_byte_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
-/// Returns FLASH_PROTECTED_ERR if address is in the protected sector
+/// Note: make sure that provided address is in kernel space. Otherwise the read step fails.
+/// Returns FLASH_PROTECTED_ERR if kseg1_address is in the protected sector
+/// Returns FLASH_ADDRESS_NOT_KERNEL_SPACE if kseg1_address is not in kernel space (required for the read-part of the algorithm)
 /// Returns 0 (nil) if successful
-flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_byte_size);
+flstatus_t flash_program_page_offset(fladdr_t kseg1_address, const flword_t* data, flword_t data_byte_size);
 
 #ifndef DISABLE_ERASE_ALL_PROGRAM_MEM
 /// Erase all data in program memory.

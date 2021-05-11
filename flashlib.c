@@ -43,6 +43,12 @@ flstatus_t flash_commit(flash_operation_t op);
     #error "When defining PROTECTED_FLASH_SECTOR_TO you should also provide PROTECTED_FLASH_SECTOR_FROM"
 #endif
 
+unsigned char is_address_kseg(fladdr_t address) {
+    // KSEG0 = 0x9xxxxxxx
+    // KSEG1 = 0xBxxxxxxx
+    return (address & 0xF0000000) >= 0x90000000;
+}
+
 #ifdef ENABLE_EEPROM_EMU
     #ifndef EEPROM_SECTOR_START
         #error "EEPROM_SECTOR_START is not defined. Provide a physical program flash address for this"
@@ -65,6 +71,8 @@ flstatus_t flash_commit(flash_operation_t op);
     }
 
     flword_t eeprom_read_word(flword_t* ee_address) {
+        if(!is_address_kseg((fladdr_t)ee_address))
+            return FLASH_ADDRESS_NOT_KERNEL_SPACE;
         if(!is_address_within_eeprom_sector((fladdr_t)ee_address))
             return EEPROM_OUT_OF_RANGE_ERR;
         return *ee_address;
@@ -87,21 +95,25 @@ unsigned char is_address_within_protected_sector(fladdr_t address) {
 #endif
 }
 
-flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_byte_size) {
-    if(is_address_within_protected_sector(address))
+flstatus_t flash_program_page(fladdr_t kseg1_address, const flword_t* data, flword_t data_byte_size) {
+    if(!is_address_kseg(kseg1_address))
+        return FLASH_ADDRESS_NOT_KERNEL_SPACE;
+    if(is_address_within_protected_sector(kseg1_address))
         return FLASH_PROTECTED_ERR;
-    if(address % PAGE_SIZE != 0)
+    if(kseg1_address % PAGE_SIZE != 0)
         return FLASH_NOT_ALIGNED;
 
     flword_t flash_page[PAGE_SIZE];
-    memcpy(flash_page, (flword_t*)address, PAGE_SIZE);
+    memcpy(flash_page, (flword_t*)kseg1_address, PAGE_SIZE);
     memcpy(flash_page, data, data_byte_size);
-    return flash_write_page(address, flash_page);
+    return flash_write_page(kseg1_address, flash_page);
 }
 
-flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_byte_size) {
-    flword_t offset = address % PAGE_SIZE;
-    fladdr_t offset_address = address - offset;
+flstatus_t flash_program_page_offset(fladdr_t kseg1_address, const flword_t* data, flword_t data_byte_size) {
+    if(!is_address_kseg(kseg1_address))
+        return FLASH_ADDRESS_NOT_KERNEL_SPACE;
+    flword_t offset = kseg1_address % PAGE_SIZE;
+    fladdr_t offset_address = kseg1_address - offset;
     if(is_address_within_protected_sector(offset_address))
         return FLASH_PROTECTED_ERR;
 
