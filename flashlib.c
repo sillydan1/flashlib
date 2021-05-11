@@ -73,7 +73,7 @@ flstatus_t flash_commit(flash_operation_t op);
     flstatus_t eeprom_write_word(fladdr_t ee_address, flword_t data_word) {
         if(!is_address_within_eeprom_sector(ee_address))
             return EEPROM_OUT_OF_RANGE_ERR;
-        return flash_program_page_offset(ee_address, &data_word, 1);
+        return flash_program_page_offset(ee_address, &data_word, sizeof(flword_t));
     }
 
 #endif // ENABLE_EEPROM_EMU
@@ -87,7 +87,7 @@ unsigned char is_address_within_protected_sector(fladdr_t address) {
 #endif
 }
 
-flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_size) {
+flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_byte_size) {
     if(is_address_within_protected_sector(address))
         return FLASH_PROTECTED_ERR;
     if(address % PAGE_SIZE != 0)
@@ -95,11 +95,11 @@ flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t d
 
     flword_t flash_page[PAGE_SIZE];
     memcpy(flash_page, (flword_t*)address, PAGE_SIZE);
-    memcpy(flash_page, data, data_size);
+    memcpy(flash_page, data, data_byte_size);
     return flash_write_page(address, flash_page);
 }
 
-flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_size) {
+flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_byte_size) {
     flword_t offset = address % PAGE_SIZE;
     fladdr_t offset_address = address - offset;
     if(is_address_within_protected_sector(offset_address))
@@ -107,7 +107,7 @@ flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flw
 
     uint8_t flash_page[PAGE_SIZE];
     memcpy(flash_page, (uint8_t*)offset_address, PAGE_SIZE);
-    memcpy(&flash_page[offset], data, min(data_size, (PAGE_SIZE-offset)));
+    memcpy(&flash_page[offset], (const uint8_t*)data, min(data_byte_size, (PAGE_SIZE - offset)));
     return flash_write_page(offset_address, (const flword_t *) flash_page);
 }
 
@@ -150,7 +150,7 @@ flstatus_t flash_write_row(fladdr_t address, const flword_t* data) {
 }
 
 flstatus_t flash_write_word(fladdr_t address, flword_t data_word) {
-    return flash_program_page_offset(address, &data_word, 1);
+    return flash_program_page_offset(address, &data_word, sizeof(flword_t));
 }
 
 #ifndef DISABLE_ERASE_ALL_PROGRAM_MEM

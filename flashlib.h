@@ -63,17 +63,17 @@ flstatus_t flash_write_page(fladdr_t address, const flword_t* data);
 
 /// Read / Modify / Write cycle for programming a page with data with size
 /// Note: provided address should be page-aligned
-/// Note: if data_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
+/// Note: if data_byte_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
 /// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns FLASH_NOT_ALIGNED if address is not page-aligned
 /// Returns 0 (nil) if successful
-flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_size);
+flstatus_t flash_program_page(fladdr_t address, const flword_t* data, flword_t data_byte_size);
 
 /// Read / Modify / Write cycle for programming a page with data with size
-/// Note: if data_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
+/// Note: if data_byte_size is larger than PAGE_SIZE, only PAGE_SIZE amount of data is written. Rest is ignored
 /// Returns FLASH_PROTECTED_ERR if address is in the protected sector
 /// Returns 0 (nil) if successful
-flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_size);
+flstatus_t flash_program_page_offset(fladdr_t address, const flword_t* data, flword_t data_byte_size);
 
 #ifndef DISABLE_ERASE_ALL_PROGRAM_MEM
 /// Erase all data in program memory.
