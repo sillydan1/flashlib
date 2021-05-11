@@ -7,12 +7,13 @@ This library assumes you have the `xc32-gcc` compiler chain installed. If you ha
 ## Supported Features
  - `eeprom_read_word` Reads a word from emulated eeprom, if enabled
  - `eeprom_write_word` Writes a word to emulated eeprom, if enabled
- - `flash_read_word` Reads a word from program memory flash
- - `flash_write_word` Writes a word to program memory flash
- - `flash_write_doubleword` Writes a doubleword to program memory flash, if enabled
- - `flash_write_row` Writes a row of data to program memory flash
- - `flash_erase_page` Erases a page of program memory flash
- - `flash_erase_all_program_memory` Erases all of program memory flash - Including emulated eeprom sector
+ - `flash_write_word` Writes a word to program flash memory
+ - `flash_program_page_offset` Read/Modify/Write algorithm to write a page that is offset to the page size. Note, this function will only write a single page. If the provided data is bigger than a page, the additional data will not be written. 
+ - `flash_program_page` Read/Modify/Write algorithm to write a page to program flash memory. Will return `FLASH_NOT_ALIGNED` if provided address is not page-aligned
+ - `flash_write_page` Writes a page to program flash memory. Note, this will erase whatever's on the page before.
+ - `flash_write_row` Writes a row to program flash memory
+ - `flash_erase_page` Erases a page of program flash memory
+ - `flash_erase_all_program_memory` Erases all of program flash memory - Including emulated eeprom sector. Use with caution. Note, this function is enabled by default but can be disabled to avoid accidents with the `DISABLE_ERASE_ALL_PROGRAM_MEM` cmake variable
  - Custom Protected flash sector support, to avoid situations like bootloaders overriding itself
 
 ## Use in your CMake projects
